@@ -1,15 +1,18 @@
 package dposse.syncedpomodorotimer
 
+import android.annotation.TargetApi
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu
 import android.view.MenuItem
+import dposse.syncedpomodorotimer.util.NotificationUtil
 import dposse.syncedpomodorotimer.util.PrefUtil
 
 import kotlinx.android.synthetic.main.activity_timer.*
@@ -21,7 +24,7 @@ class TimerActivity : AppCompatActivity() {
     //background alarm
     companion object {
 
-        fun setAlarm(context: Context, nowSeconds: Long,secondsRemaining: Long): Long{
+        fun setAlarm(context: Context, nowSeconds: Long, secondsRemaining: Long): Long{
 
             val wakeUpTime = (nowSeconds + secondsRemaining) * 1000
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -71,19 +74,19 @@ class TimerActivity : AppCompatActivity() {
         supportActionBar?.setIcon(R.drawable.ic_timer)
         supportActionBar?.title = "Timer"
 
-        fab_play_arrow.setOnClickListener { v ->
+        fab_play_arrow.setOnClickListener { _ ->
             startTimer()
             timerState = TimerState.Running
             updateButtons()
         }
 
-        fab_pause.setOnClickListener { v ->
+        fab_pause.setOnClickListener { _ ->
             timer.cancel()
             timerState = TimerState.Paused
             updateButtons()
         }
 
-        fab_stop.setOnClickListener { v ->
+        fab_stop.setOnClickListener { _ ->
             timer.cancel()
             onTimerFinished()
         }
@@ -97,7 +100,7 @@ class TimerActivity : AppCompatActivity() {
 
         removeAlarm(this)
 
-        //TODO: hide notification
+        NotificationUtil.hideTimerNotification(this)
     }
 
     override fun onPause() {
@@ -107,10 +110,10 @@ class TimerActivity : AppCompatActivity() {
         if (timerState == TimerState.Running){
             timer.cancel()
             val wakeUpTime = setAlarm(this, nowSeconds,secondsRemaining)
-            //TODO: show notification
+            NotificationUtil.showTimerRunning(this,wakeUpTime)
         }
         else if (timerState == TimerState.Paused){
-            //show notification
+            NotificationUtil.showTimerPaused(this)
         }
 
         PrefUtil.setPreviousTimerLengthSeconds(timerLengthSeconds,this)
